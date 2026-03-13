@@ -25,17 +25,8 @@
         .pronunciation { font-size: 16px; color: #7f8c8d; margin-bottom: 5px; }
         .meaning { font-size: 20px; font-weight: bold; color: #e74c3c; }
         
-        /* 마우스 오버 시 나타나는 예문 영역 */
-        .examples-wrapper { 
-            display: none; /* 기본적으로 숨김 */
-            margin-top: 20px; 
-            border-top: 1px dashed #bdc3c7; 
-            padding-top: 15px; 
-        }
-        .card:hover .examples-wrapper { 
-            display: block; /* 마우스를 올리면 표시 */
-            animation: fadeIn 0.4s ease-out;
-        }
+        .examples-wrapper { display: none; margin-top: 20px; border-top: 1px dashed #bdc3c7; padding-top: 15px; }
+        .card:hover .examples-wrapper { display: block; animation: fadeIn 0.4s ease-out; }
         
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-5px); }
@@ -43,7 +34,7 @@
         }
 
         .hover-hint { font-size: 12px; color: #95a5a6; text-align: center; margin-top: 15px; }
-        .card:hover .hover-hint { display: none; } /* 마우스 올리면 힌트 숨김 */
+        .card:hover .hover-hint { display: none; }
 
         .example-box { background-color: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #bdc3c7; }
         .example-text { font-size: 15px; color: #333; margin-bottom: 4px; }
@@ -63,9 +54,7 @@
     <div id="content-area"></div>
 
     <script>
-        let currentLang = 'japanese';
-        let currentCategory = 'words'; // 단어 테스트를 위해 기본값을 단어장으로 변경
-
+        // 카테고리 구조 정의
         const categories = {
             japanese: [
                 { id: 'hiragana', name: '히라가나' }, { id: 'katakana', name: '가타카나' },
@@ -76,6 +65,14 @@
                 { id: 'sentences', name: '핵심 문장' }
             ]
         };
+
+        // 1. 브라우저 저장소에서 이전 상태 불러오기 (없으면 일본어 기본값)
+        let currentLang = localStorage.getItem('my_study_lang') || 'japanese';
+        let savedCategory = localStorage.getItem('my_study_cat');
+        
+        // 2. 만약 저장된 카테고리가 현재 언어에 안 맞는 경우 방어 로직 (예: 영어인데 히라가나가 저장된 경우)
+        let isValidCat = savedCategory && categories[currentLang].some(c => c.id === savedCategory);
+        let currentCategory = isValidCat ? savedCategory : (currentLang === 'japanese' ? 'words' : 'words');
 
         function renderCategoryNav() {
             const catNav = document.getElementById('cat-nav');
@@ -91,13 +88,22 @@
 
         function setLang(lang) {
             currentLang = lang;
-            currentCategory = 'words'; 
+            currentCategory = lang === 'japanese' ? 'words' : 'words'; 
+            
+            // 변경된 상태를 브라우저에 저장
+            localStorage.setItem('my_study_lang', currentLang);
+            localStorage.setItem('my_study_cat', currentCategory);
+            
             renderCategoryNav();
             renderData();
         }
 
         function setCategory(cat) {
             currentCategory = cat;
+            
+            // 변경된 상태를 브라우저에 저장
+            localStorage.setItem('my_study_cat', currentCategory);
+            
             renderData();
         }
 
@@ -170,6 +176,7 @@
             });
         }
 
+        // 초기 실행
         renderCategoryNav();
         renderData();
     </script>
