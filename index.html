@@ -3,50 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>나만의 무료 어학 사전</title>
+    <title>나만의 어학 사전</title>
     <style>
-        /* 기본 디자인 및 레이아웃 */
-        body { font-family: 'Malgun Gothic', sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #f4f7f6; }
-        h1 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
-        .nav-group { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-        button { padding: 10px 20px; border: none; background-color: #bdc3c7; color: #2c3e50; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: bold; transition: 0.2s; }
+        body { font-family: 'Malgun Gothic', sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #f4f7f6; color: #333; }
+        h1 { text-align: center; color: #2c3e50; }
+        
+        .nav-group { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        button { padding: 12px 24px; border: none; background-color: #bdc3c7; color: #2c3e50; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.2s; }
         button.active { background-color: #34495e; color: white; }
         
-        /* 검색창 디자인 */
-        .search-container { display: flex; justify-content: center; margin-bottom: 25px; }
+        .search-container { display: flex; justify-content: center; margin-bottom: 30px; }
         #search-input { width: 100%; max-width: 500px; padding: 12px 20px; border: 2px solid #bdc3c7; border-radius: 25px; outline: none; font-size: 16px; }
 
-        /* 카드 및 예문 노출 로직 (우측 표시 & 3배 느린 1.2s 속도) */
-        #content-area { display: grid; gap: 15px; grid-template-columns: 1fr; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); cursor: pointer; display: flex; align-items: center; transition: 0.3s; min-height: 120px; }
+        #content-area { display: grid; gap: 20px; grid-template-columns: 1fr; }
+        
+        /* [수정] 단어가 이동하는 transition 속도를 0.3s -> 0.9s로 3배 느리게 설정 */
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; align-items: center; transition: transform 0.9s, box-shadow 0.9s, align-items 0.9s; cursor: pointer; min-height: 120px; }
         .card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
         
         .word-header { flex: 1; text-align: center; }
-        .word-title { font-size: 28px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
+        .word-title { font-size: 30px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
         .meaning { font-size: 20px; color: #e74c3c; font-weight: bold; }
         
-        .examples-wrapper { display: none; flex: 2; margin-left: 30px; padding-left: 30px; border-left: 1px dashed #bdc3c7; text-align: left; }
-        .card:hover .examples-wrapper { display: block; animation: fadeInRight 1.2s ease-out forwards; }
+        /* 오른쪽 예문 영역 */
+        .examples-wrapper { display: none; flex: 2; margin-left: 35px; padding-left: 35px; border-left: 1px dashed #bdc3c7; text-align: left; }
+        
+        /* [수정] 애니메이션 시간을 1.2s -> 0.4s로 3배 빠르게 설정 */
+        .card:hover .examples-wrapper { display: block; animation: fadeInRight 0.4s ease-out forwards; }
         
         @keyframes fadeInRight { 
             from { opacity: 0; transform: translateX(25px); } 
             to { opacity: 1; transform: translateX(0); } 
         }
 
-        .example-box { background-color: #f8f9fa; padding: 12px; border-radius: 8px; border-left: 4px solid #34495e; margin-bottom: 5px; }
-        #loading { text-align: center; padding: 50px; font-weight: bold; color: #34495e; font-size: 1.2em; }
-        
-        /* 모바일용 반응형 레이아웃 */
+        .example-box { background-color: #f8f9fa; padding: 15px; border-radius: 10px; border-left: 5px solid #34495e; }
+        #loading { text-align: center; padding: 50px; font-weight: bold; font-size: 1.2em; color: #34495e; }
+
         @media (max-width: 600px) {
-            .card { flex-direction: column; text-align: center; padding: 20px; }
-            .examples-wrapper { margin-left: 0; padding-left: 0; border-left: none; border-top: 1px dashed #bdc3c7; margin-top: 20px; width: 100%; }
+            .card { flex-direction: column; text-align: center; transition: none; } /* 모바일은 애니메이션 끔 */
+            .examples-wrapper { margin-left: 0; padding-left: 0; border-left: none; border-top: 1px dashed #bdc3c7; margin-top: 20px; width: 100%; animation: none; }
         }
     </style>
 </head>
 <body>
 
-    <h1>📚 실시간 연동 어학 사전</h1>
-    <div id="loading">구글 시트에서 데이터를 불러오고 있습니다...</div>
+    <h1>📚 실시간 어학 사전</h1>
+    <div id="loading">구글 시트에서 데이터를 불러오는 중...</div>
     
     <div class="nav-group" id="lang-nav" style="display:none;">
         <button id="btn-japanese" onclick="setLang('japanese')">🇯🇵 일본어</button>
@@ -54,19 +56,18 @@
     </div>
 
     <div class="search-container">
-        <input type="text" id="search-input" placeholder="🔍 궁금한 단어나 뜻을 검색해보세요" onkeyup="renderData()">
+        <input type="text" id="search-input" placeholder="🔍 단어, 뜻 검색..." onkeyup="renderData()">
     </div>
 
     <div id="content-area"></div>
 
     <script>
-        // 발급받은 본인의 무료 API 주소
-        const API_URL = "https://script.google.com/macros/s/AKfycby93egD7w_6VxyNlT7oBBUv30I5KNaFE3igW_kr8_rpexymF7EnwdsmRkTGh7msGTOTlw/exec";
+        // 본인의 무료 API 주소
+        const API_URL = "https://script.google.com/macros/s/AKfycbx5o78Fj9y1laaIZZelmzDWmb90QxyA3gQIwXoa5JE7FzPOgEf_S7OPDEjxQYHvDYAdlA/exec";
 
-        let allData = [];
+        let allData = { japanese: [], english: [] };
         let currentLang = localStorage.getItem('lang') || 'japanese';
 
-        // 구글 시트 데이터 로드
         async function loadSheetData() {
             try {
                 const response = await fetch(API_URL);
@@ -77,7 +78,7 @@
                 document.getElementById('lang-nav').style.display = 'flex';
                 renderData();
             } catch (e) {
-                document.getElementById('loading').innerText = "데이터를 불러오는 데 실패했습니다. 시트 설정을 확인해주세요.";
+                document.getElementById('loading').innerText = "로드 실패. 시트 이름이 'japanese', 'english'인지 확인하세요.";
                 console.error(e);
             }
         }
@@ -93,19 +94,15 @@
             const query = document.getElementById('search-input').value.toLowerCase();
             area.innerHTML = '';
             
-            // 언어 선택 버튼 활성화 스타일
             document.querySelectorAll('#lang-nav button').forEach(b => b.className = b.id.includes(currentLang) ? 'active' : '');
 
-            // 데이터 필터링 (언어 구분 및 검색어 일치 확인)
-            const list = allData.filter(item => {
-                const isEnglishItem = /[a-zA-Z]/.test(item.word);
-                const matchesLang = currentLang === 'english' ? isEnglishItem : !isEnglishItem;
-                const matchesSearch = item.word.toLowerCase().includes(query) || item.mean.toLowerCase().includes(query);
-                return matchesLang && matchesSearch;
-            });
+            const list = (allData[currentLang] || []).filter(item => 
+                (item.word && item.word.toString().toLowerCase().includes(query)) || 
+                (item.mean && item.mean.toString().toLowerCase().includes(query))
+            );
 
             if (list.length === 0) {
-                area.innerHTML = '<div style="text-align:center; padding: 40px; color:#7f8c8d;">해당 단어가 없습니다.</div>';
+                area.innerHTML = '<div style="text-align:center; padding: 40px; color:#7f8c8d;">단어가 없습니다. 시트에 내용을 추가해주세요.</div>';
                 return;
             }
 
@@ -115,15 +112,14 @@
                 card.innerHTML = `
                     <div class="word-header">
                         <div class="word-title">${item.word}</div>
-                        ${item.pron ? `<div style="color:#7f8c8d; font-size:16px; margin-bottom:5px;">[${item.pron}]</div>` : ''}
+                        ${item.pron ? `<div style="color:#7f8c8d; font-size:16px;">[${item.pron}]</div>` : ''}
                         <div class="meaning">${item.mean}</div>
-                        <div style="font-size:11px; color:#bdc3c7; margin-top:15px; letter-spacing:1px;">EXMAPLE MOVED TO RIGHT 👉</div>
                     </div>
                     <div class="examples-wrapper">
                         <div class="example-box">
-                            <div style="font-size:17px; margin-bottom:8px; color:#333;"><strong>${item.ex_main}</strong></div>
-                            ${item.ex_pron ? `<div style="color:#7f8c8d; font-size:14px; margin-bottom:5px;">${item.ex_pron}</div>` : ''}
-                            <div style="color:#e74c3c; font-size:15px; font-weight:bold;">${item.ex_kr}</div>
+                            <div style="font-size:18px; color:#333;"><strong>${item.ex_main || ''}</strong></div>
+                            ${item.ex_pron ? `<div style="color:#7f8c8d; font-size:14px; margin-top:5px;">${item.ex_pron}</div>` : ''}
+                            <div style="color:#e74c3c; font-size:16px; font-weight:bold; margin-top:8px;">${item.ex_kr || ''}</div>
                         </div>
                     </div>
                 `;
