@@ -5,40 +5,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>나만의 어학 공부 사이트</title>
     <style>
-        body { font-family: 'Malgun Gothic', sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f4f7f6; }
+        body { font-family: 'Malgun Gothic', sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #f4f7f6; }
         h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; }
         .nav-group { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
         button { padding: 10px 20px; border: none; background-color: #bdc3c7; color: #2c3e50; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: bold; transition: 0.2s; }
         button:hover { background-color: #95a5a6; }
         button.active { background-color: #34495e; color: white; }
+        
         #content-area { display: grid; gap: 15px; grid-template-columns: 1fr; margin-top: 20px; }
         #content-area.grid-mode { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
         
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
         .card:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
         
         .char-title { font-size: 36px; font-weight: bold; color: #2980b9; text-align: center; margin-bottom: 10px; }
         .char-sub { font-size: 16px; color: #7f8c8d; text-align: center; line-height: 1.4; }
         
-        .word-header { display: flex; flex-direction: column; align-items: center; text-align: center; }
-        .word-title { font-size: 28px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
+        /* 단어/문장 모드일 때 좌우 분할 디자인 */
+        .card.word-mode { display: flex; align-items: center; justify-content: center; }
+        .card.word-mode:hover { align-items: flex-start; } /* 예문이 나오면 위쪽 정렬 */
+        
+        .word-header { flex: 1; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .word-title { font-size: 26px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
         .pronunciation { font-size: 16px; color: #7f8c8d; margin-bottom: 5px; }
-        .meaning { font-size: 20px; font-weight: bold; color: #e74c3c; }
-        
-        .examples-wrapper { display: none; margin-top: 20px; border-top: 1px dashed #bdc3c7; padding-top: 15px; }
-        .card:hover .examples-wrapper { display: block; animation: fadeIn 0.4s ease-out; }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .hover-hint { font-size: 12px; color: #95a5a6; text-align: center; margin-top: 15px; }
+        .meaning { font-size: 18px; font-weight: bold; color: #e74c3c; }
+        .hover-hint { font-size: 12px; color: #95a5a6; margin-top: 15px; }
         .card:hover .hover-hint { display: none; }
+        
+        /* 오른쪽으로 나타나는 예문 영역 */
+        .examples-wrapper { 
+            display: none; 
+            flex: 2; /* 오른쪽 영역을 더 넓게 */
+            margin-left: 30px; 
+            padding-left: 30px; 
+            border-left: 1px dashed #bdc3c7; 
+        }
+        
+        /* 애니메이션 속도를 기존 0.4s에서 1.2s로 3배 느리게 수정 */
+        .card.word-mode:hover .examples-wrapper { 
+            display: block; 
+            animation: fadeInRight 1.2s ease-out forwards; 
+        }
+        
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(15px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
 
         .example-box { background-color: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #bdc3c7; }
         .example-text { font-size: 15px; color: #333; margin-bottom: 4px; }
         .example-translation { font-size: 14px; color: #7f8c8d; }
+
+        /* 모바일 화면에서는 공간이 부족하므로 예전처럼 아래쪽으로 표시 */
+        @media (max-width: 600px) {
+            .card.word-mode { flex-direction: column; }
+            .examples-wrapper { margin-left: 0; padding-left: 0; border-left: none; border-top: 1px dashed #bdc3c7; margin-top: 20px; padding-top: 15px; }
+            @keyframes fadeInRight {
+                from { opacity: 0; transform: translateY(-5px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        }
     </style>
     <script src="data.js"></script>
 </head>
@@ -54,7 +80,6 @@
     <div id="content-area"></div>
 
     <script>
-        // 카테고리 구조 정의
         const categories = {
             japanese: [
                 { id: 'hiragana', name: '히라가나' }, { id: 'katakana', name: '가타카나' },
@@ -66,11 +91,8 @@
             ]
         };
 
-        // 1. 브라우저 저장소에서 이전 상태 불러오기 (없으면 일본어 기본값)
         let currentLang = localStorage.getItem('my_study_lang') || 'japanese';
         let savedCategory = localStorage.getItem('my_study_cat');
-        
-        // 2. 만약 저장된 카테고리가 현재 언어에 안 맞는 경우 방어 로직 (예: 영어인데 히라가나가 저장된 경우)
         let isValidCat = savedCategory && categories[currentLang].some(c => c.id === savedCategory);
         let currentCategory = isValidCat ? savedCategory : (currentLang === 'japanese' ? 'words' : 'words');
 
@@ -89,21 +111,15 @@
         function setLang(lang) {
             currentLang = lang;
             currentCategory = lang === 'japanese' ? 'words' : 'words'; 
-            
-            // 변경된 상태를 브라우저에 저장
             localStorage.setItem('my_study_lang', currentLang);
             localStorage.setItem('my_study_cat', currentCategory);
-            
             renderCategoryNav();
             renderData();
         }
 
         function setCategory(cat) {
             currentCategory = cat;
-            
-            // 변경된 상태를 브라우저에 저장
             localStorage.setItem('my_study_cat', currentCategory);
-            
             renderData();
         }
 
@@ -136,39 +152,28 @@
                         <div class="char-title">${item.char}</div>
                         <div class="char-sub"><strong>${item.read}</strong></div>
                     `;
-                } 
-                else if (currentLang === 'japanese') {
+                } else {
+                    card.classList.add('word-mode'); // 좌우 분할 레이아웃 적용
+
+                    let isJapanese = currentLang === 'japanese';
+                    let title = isJapanese ? item.kanji : item.word;
+                    let pronunciation = isJapanese ? `<div class="pronunciation">[${item.hiragana}]</div>` : '';
+                    let meaning = item.korean;
+
                     let examplesHtml = (item.examples || []).map(ex => `
                         <div class="example-box">
-                            <div class="example-text"><strong>${ex.main}</strong> <br><span style="font-size: 0.9em; color: #7f8c8d;">${ex.sub}</span></div>
+                            <div class="example-text"><strong>${ex.main}</strong> ${isJapanese ? `<br><span style="font-size: 0.9em; color: #7f8c8d;">${ex.sub}</span>` : ''}</div>
                             <div class="example-translation">${ex.kr}</div>
                         </div>
                     `).join('');
 
                     card.innerHTML = `
                         <div class="word-header">
-                            <div class="word-title">${item.kanji}</div>
-                            <div class="pronunciation">[${item.hiragana}]</div>
-                            <div class="meaning">${item.korean}</div>
+                            <div class="word-title">${title}</div>
+                            ${pronunciation}
+                            <div class="meaning">${meaning}</div>
+                            <div class="hover-hint">🖱️ 마우스를 올리면 예문 확인</div>
                         </div>
-                        <div class="hover-hint">🖱️ 마우스를 올리면 예문 확인</div>
-                        <div class="examples-wrapper">${examplesHtml}</div>
-                    `;
-                } 
-                else if (currentLang === 'english') {
-                    let examplesHtml = (item.examples || []).map(ex => `
-                        <div class="example-box">
-                            <div class="example-text"><strong>${ex.main}</strong></div>
-                            <div class="example-translation">${ex.kr}</div>
-                        </div>
-                    `).join('');
-
-                    card.innerHTML = `
-                        <div class="word-header">
-                            <div class="word-title">${item.word}</div>
-                            <div class="meaning">${item.korean}</div>
-                        </div>
-                        <div class="hover-hint">🖱️ 마우스를 올리면 예문 확인</div>
                         <div class="examples-wrapper">${examplesHtml}</div>
                     `;
                 }
@@ -176,7 +181,6 @@
             });
         }
 
-        // 초기 실행
         renderCategoryNav();
         renderData();
     </script>
