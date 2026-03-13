@@ -6,24 +6,33 @@
     <title>나만의 어학 공부 사이트</title>
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #f4f7f6; }
-        h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; }
+        h1 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
+        
+        /* 네비게이션 버튼 */
         .nav-group { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
         button { padding: 10px 20px; border: none; background-color: #bdc3c7; color: #2c3e50; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: bold; transition: 0.2s; }
         button:hover { background-color: #95a5a6; }
         button.active { background-color: #34495e; color: white; }
         
-        #content-area { display: grid; gap: 15px; grid-template-columns: 1fr; margin-top: 20px; }
+        /* 검색창 디자인 */
+        .search-container { display: flex; justify-content: center; margin-bottom: 25px; }
+        #search-input { width: 100%; max-width: 500px; padding: 12px 20px; font-size: 16px; border: 2px solid #bdc3c7; border-radius: 25px; outline: none; transition: 0.3s; }
+        #search-input:focus { border-color: #34495e; box-shadow: 0 0 8px rgba(52, 73, 94, 0.2); }
+
+        /* 콘텐츠 영역 */
+        #content-area { display: grid; gap: 15px; grid-template-columns: 1fr; margin-top: 10px; }
         #content-area.grid-mode { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
         
         .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
         .card:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
         
+        /* 기초 문자용 */
         .char-title { font-size: 36px; font-weight: bold; color: #2980b9; text-align: center; margin-bottom: 10px; }
         .char-sub { font-size: 16px; color: #7f8c8d; text-align: center; line-height: 1.4; }
         
-        /* 단어/문장 모드일 때 좌우 분할 디자인 */
+        /* 단어/문장 좌우 분할 디자인 */
         .card.word-mode { display: flex; align-items: center; justify-content: center; }
-        .card.word-mode:hover { align-items: flex-start; } /* 예문이 나오면 위쪽 정렬 */
+        .card.word-mode:hover { align-items: flex-start; }
         
         .word-header { flex: 1; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .word-title { font-size: 26px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
@@ -32,20 +41,9 @@
         .hover-hint { font-size: 12px; color: #95a5a6; margin-top: 15px; }
         .card:hover .hover-hint { display: none; }
         
-        /* 오른쪽으로 나타나는 예문 영역 */
-        .examples-wrapper { 
-            display: none; 
-            flex: 2; /* 오른쪽 영역을 더 넓게 */
-            margin-left: 30px; 
-            padding-left: 30px; 
-            border-left: 1px dashed #bdc3c7; 
-        }
-        
-        /* 애니메이션 속도를 기존 0.4s에서 1.2s로 3배 느리게 수정 */
-        .card.word-mode:hover .examples-wrapper { 
-            display: block; 
-            animation: fadeInRight 1.2s ease-out forwards; 
-        }
+        /* 오른쪽으로 나타나는 예문 (3배 느린 1.2s 애니메이션) */
+        .examples-wrapper { display: none; flex: 2; margin-left: 30px; padding-left: 30px; border-left: 1px dashed #bdc3c7; }
+        .card.word-mode:hover .examples-wrapper { display: block; animation: fadeInRight 1.2s ease-out forwards; }
         
         @keyframes fadeInRight {
             from { opacity: 0; transform: translateX(15px); }
@@ -56,15 +54,18 @@
         .example-text { font-size: 15px; color: #333; margin-bottom: 4px; }
         .example-translation { font-size: 14px; color: #7f8c8d; }
 
-        /* 모바일 화면에서는 공간이 부족하므로 예전처럼 아래쪽으로 표시 */
+        /* 모바일 대응 */
         @media (max-width: 600px) {
             .card.word-mode { flex-direction: column; }
             .examples-wrapper { margin-left: 0; padding-left: 0; border-left: none; border-top: 1px dashed #bdc3c7; margin-top: 20px; padding-top: 15px; }
-            @keyframes fadeInRight {
-                from { opacity: 0; transform: translateY(-5px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
+            @keyframes fadeInRight { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
         }
+
+        /* 페이지 네비게이션 (Pagination) */
+        .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 30px; flex-wrap: wrap; }
+        .page-btn { padding: 8px 15px; background-color: #ecf0f1; border: none; border-radius: 5px; cursor: pointer; color: #2c3e50; font-weight: bold; }
+        .page-btn:hover { background-color: #bdc3c7; }
+        .page-btn.active { background-color: #2980b9; color: white; }
     </style>
     <script src="data.js"></script>
 </head>
@@ -76,8 +77,16 @@
         <button id="btn-japanese" onclick="setLang('japanese')">🇯🇵 일본어</button>
         <button id="btn-english" onclick="setLang('english')">🇺🇸 영어</button>
     </div>
+    
     <div class="nav-group" id="cat-nav"></div>
+
+    <div class="search-container">
+        <input type="text" id="search-input" placeholder="🔍 단어, 뜻, 발음으로 검색해보세요" onkeyup="handleSearch()">
+    </div>
+
     <div id="content-area"></div>
+    
+    <div class="pagination" id="pagination-area"></div>
 
     <script>
         const categories = {
@@ -94,7 +103,12 @@
         let currentLang = localStorage.getItem('my_study_lang') || 'japanese';
         let savedCategory = localStorage.getItem('my_study_cat');
         let isValidCat = savedCategory && categories[currentLang].some(c => c.id === savedCategory);
-        let currentCategory = isValidCat ? savedCategory : (currentLang === 'japanese' ? 'words' : 'words');
+        let currentCategory = isValidCat ? savedCategory : 'words';
+
+        // 페이지 네비게이션용 변수 (한 화면에 보여줄 개수)
+        let currentPage = 1;
+        const itemsPerPage = 50; 
+        let filteredData = [];
 
         function renderCategoryNav() {
             const catNav = document.getElementById('cat-nav');
@@ -110,17 +124,24 @@
 
         function setLang(lang) {
             currentLang = lang;
-            currentCategory = lang === 'japanese' ? 'words' : 'words'; 
+            currentCategory = 'words'; 
             localStorage.setItem('my_study_lang', currentLang);
             localStorage.setItem('my_study_cat', currentCategory);
+            document.getElementById('search-input').value = ''; // 언어 바꿀 때 검색어 초기화
             renderCategoryNav();
-            renderData();
+            prepareData();
         }
 
         function setCategory(cat) {
             currentCategory = cat;
             localStorage.setItem('my_study_cat', currentCategory);
-            renderData();
+            document.getElementById('search-input').value = ''; // 탭 바꿀 때 검색어 초기화
+            prepareData();
+        }
+
+        // 검색어 입력 시 실행
+        function handleSearch() {
+            prepareData();
         }
 
         function updateButtonStyles() {
@@ -130,10 +151,46 @@
             if(activeCatBtn) activeCatBtn.classList.add('active');
         }
 
+        // 데이터를 준비하고 검색 필터를 적용하는 함수
+        function prepareData() {
+            currentPage = 1; // 검색이나 탭 변경 시 무조건 1페이지로
+            const rawData = db[currentLang][currentCategory] || [];
+            const query = document.getElementById('search-input').value.toLowerCase().trim();
+
+            if (!query) {
+                filteredData = rawData;
+            } else {
+                // 검색어가 있을 경우 필터링
+                filteredData = rawData.filter(item => {
+                    if (['hiragana', 'katakana', 'alphabet'].includes(currentCategory)) {
+                        return item.char.toLowerCase().includes(query) || item.read.toLowerCase().includes(query);
+                    } else if (currentLang === 'japanese') {
+                        return (item.kanji && item.kanji.includes(query)) || 
+                               (item.hiragana && item.hiragana.includes(query)) || 
+                               (item.korean && item.korean.includes(query));
+                    } else {
+                        return (item.word && item.word.toLowerCase().includes(query)) || 
+                               (item.korean && item.korean.includes(query));
+                    }
+                });
+            }
+            renderData();
+        }
+
+        // 페이지 이동 함수
+        function goToPage(pageNumber) {
+            currentPage = pageNumber;
+            renderData();
+            window.scrollTo(0, 0); // 페이지 넘길 때 맨 위로 스크롤
+        }
+
+        // 실제 화면에 그리는 함수 (페이지네이션 적용)
         function renderData() {
             updateButtonStyles();
             const contentArea = document.getElementById('content-area');
+            const paginationArea = document.getElementById('pagination-area');
             contentArea.innerHTML = ''; 
+            paginationArea.innerHTML = '';
 
             if (['hiragana', 'katakana', 'alphabet'].includes(currentCategory)) {
                 contentArea.classList.add('grid-mode');
@@ -141,9 +198,18 @@
                 contentArea.classList.remove('grid-mode');
             }
 
-            const dataList = db[currentLang][currentCategory] || [];
+            // 검색 결과가 없을 때
+            if (filteredData.length === 0) {
+                contentArea.innerHTML = '<div style="text-align:center; padding: 50px; color:#7f8c8d;">검색 결과가 없습니다.</div>';
+                return;
+            }
 
-            dataList.forEach(item => {
+            // 현재 페이지에 해당하는 50개만 잘라내기
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageData = filteredData.slice(startIndex, endIndex);
+
+            pageData.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'card';
 
@@ -153,7 +219,7 @@
                         <div class="char-sub"><strong>${item.read}</strong></div>
                     `;
                 } else {
-                    card.classList.add('word-mode'); // 좌우 분할 레이아웃 적용
+                    card.classList.add('word-mode'); 
 
                     let isJapanese = currentLang === 'japanese';
                     let title = isJapanese ? item.kanji : item.word;
@@ -179,10 +245,22 @@
                 }
                 contentArea.appendChild(card);
             });
+
+            // 페이지 버튼 생성 로직
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            if (totalPages > 1) {
+                for (let i = 1; i <= totalPages; i++) {
+                    const btn = document.createElement('button');
+                    btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+                    btn.innerText = i;
+                    btn.onclick = () => goToPage(i);
+                    paginationArea.appendChild(btn);
+                }
+            }
         }
 
         renderCategoryNav();
-        renderData();
+        prepareData(); // 초기 데이터 로딩 및 렌더링
     </script>
 </body>
 </html>
