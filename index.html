@@ -5,57 +5,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>나만의 어학 사전</title>
     <style>
-        body { font-family: 'Malgun Gothic', sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #f4f7f6; color: #333; }
+        body { font-family: 'Malgun Gothic', sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; background-color: #f4f7f6; color: #333; }
         h1 { text-align: center; color: #2c3e50; }
         
         .nav-group { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        button { padding: 12px 24px; border: none; background-color: #bdc3c7; color: #2c3e50; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.2s; }
+        button { padding: 10px 20px; border: none; background-color: #bdc3c7; color: #2c3e50; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: bold; transition: 0.2s; }
         button.active { background-color: #34495e; color: white; }
         
-        .search-container { display: flex; justify-content: center; margin-bottom: 30px; }
-        #search-input { width: 100%; max-width: 500px; padding: 12px 20px; border: 2px solid #bdc3c7; border-radius: 25px; outline: none; font-size: 16px; }
+        .search-container { display: flex; justify-content: center; margin-bottom: 25px; }
+        #search-input { width: 100%; max-width: 500px; padding: 10px 20px; border: 2px solid #bdc3c7; border-radius: 25px; outline: none; font-size: 15px; }
 
-        #content-area { display: grid; gap: 20px; grid-template-columns: 1fr; min-height: 400px; }
+        /* [수정] 2열(2xN) 그리드 레이아웃 적용 */
+        #content-area { display: grid; gap: 15px; grid-template-columns: 1fr 1fr; min-height: 300px; }
         
-        /* 단어 이동 속도 0.9s (느리게) */
-        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; align-items: center; transition: transform 0.9s, box-shadow 0.9s; cursor: pointer; min-height: 120px; }
-        .card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        /* [수정] 세로폭 축소: padding을 30px에서 15px로 줄임 */
+        .card { 
+            background: white; 
+            padding: 15px 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+            display: flex; 
+            align-items: center; 
+            transition: transform 0.9s, box-shadow 0.9s; 
+            cursor: pointer; 
+            min-height: 70px; /* 최소 높이 절반으로 축소 */
+            overflow: hidden;
+        }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 5px 12px rgba(0,0,0,0.1); }
         
-        .word-header { flex: 1; text-align: center; transition: transform 0.9s; }
-        .word-title { font-size: 30px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
-        .meaning { font-size: 20px; color: #e74c3c; font-weight: bold; }
+        .word-header { flex: 1; text-align: center; }
+        /* 글자 크기 살짝 조정하여 좁은 칸에 맞춤 */
+        .word-title { font-size: 22px; font-weight: bold; color: #2c3e50; margin-bottom: 2px; }
+        .meaning { font-size: 16px; color: #e74c3c; font-weight: bold; }
         
         /* 오른쪽 예문 영역 */
-        .examples-wrapper { display: none; flex: 2; margin-left: 35px; padding-left: 35px; border-left: 1px dashed #bdc3c7; text-align: left; }
-        
-        /* 문장 등장 속도 0.4s (빠르게) */
+        .examples-wrapper { display: none; flex: 1.5; margin-left: 20px; padding-left: 20px; border-left: 1px dashed #bdc3c7; text-align: left; }
         .card:hover .examples-wrapper { display: block; animation: fadeInRight 0.4s ease-out forwards; }
         
         @keyframes fadeInRight { 
-            from { opacity: 0; transform: translateX(25px); } 
+            from { opacity: 0; transform: translateX(15px); } 
             to { opacity: 1; transform: translateX(0); } 
         }
 
-        .example-box { background-color: #f8f9fa; padding: 15px; border-radius: 10px; border-left: 5px solid #34495e; }
+        .example-box { background-color: #f8f9fa; padding: 8px; border-radius: 8px; border-left: 3px solid #34495e; font-size: 13px; }
 
-        /* 페이지네이션 스타일 */
-        .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 40px; margin-bottom: 50px; flex-wrap: wrap; }
-        .page-btn { padding: 8px 16px; background-color: white; border: 1px solid #bdc3c7; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .page-btn:hover { background-color: #ecf0f1; }
-        .page-btn.active { background-color: #34495e; color: white; border-color: #34495e; }
+        .pagination { display: flex; justify(content: center; gap: 5px; margin-top: 30px; margin-bottom: 50px; flex-wrap: wrap; }
+        .page-btn { padding: 6px 12px; background-color: white; border: 1px solid #bdc3c7; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .page-btn.active { background-color: #34495e; color: white; }
 
-        #loading { text-align: center; padding: 50px; font-weight: bold; font-size: 1.2em; color: #34495e; }
+        /* [수정] 문구 변경 */
+        #loading { text-align: center; padding: 50px; font-weight: bold; font-size: 1.1em; color: #34495e; }
 
-        @media (max-width: 600px) {
-            .card { flex-direction: column; text-align: center; }
-            .examples-wrapper { margin-left: 0; padding-left: 0; border-left: none; border-top: 1px dashed #bdc3c7; margin-top: 20px; width: 100%; }
+        /* 반응형: 화면이 좁아지면 1열로 변경 */
+        @media (max-width: 768px) {
+            #content-area { grid-template-columns: 1fr; }
+            .card { flex-direction: column; text-align: center; padding: 15px; }
+            .examples-wrapper { margin-left: 0; padding-left: 0; border-left: none; border-top: 1px dashed #bdc3c7; margin-top: 10px; width: 100%; }
         }
     </style>
 </head>
 <body>
 
     <h1>📚 실시간 어학 사전</h1>
-    <div id="loading">구글 시트에서 데이터를 불러오는 중...</div>
+    <div id="loading">사이트를 정리중입니다</div>
     
     <div class="nav-group" id="lang-nav" style="display:none;">
         <button id="btn-japanese" onclick="setLang('japanese')">🇯🇵 일본어</button>
@@ -63,7 +75,7 @@
     </div>
 
     <div class="search-container">
-        <input type="text" id="search-input" placeholder="🔍 단어, 뜻 검색..." onkeyup="resetAndRender()">
+        <input type="text" id="search-input" placeholder="🔍 검색어 입력..." onkeyup="resetAndRender()">
     </div>
 
     <div id="content-area"></div>
@@ -75,7 +87,7 @@
         let allData = { japanese: [], english: [] };
         let currentLang = localStorage.getItem('lang') || 'japanese';
         let currentPage = 1;
-        const itemsPerPage = 20; // 20개씩 보기
+        const itemsPerPage = 20; 
 
         async function loadSheetData() {
             try {
@@ -93,12 +105,12 @@
         function setLang(l) { 
             currentLang = l; 
             localStorage.setItem('lang', l); 
-            currentPage = 1; // 언어 변경 시 1페이지로
+            currentPage = 1; 
             renderData(); 
         }
 
         function resetAndRender() {
-            currentPage = 1; // 검색 시 1페이지로
+            currentPage = 1; 
             renderData();
         }
 
@@ -111,44 +123,40 @@
             
             document.querySelectorAll('#lang-nav button').forEach(b => b.className = b.id.includes(currentLang) ? 'active' : '');
 
-            // 1. 필터링
             const filtered = (allData[currentLang] || []).filter(item => 
                 (item.word && item.word.toString().toLowerCase().includes(query)) || 
                 (item.mean && item.mean.toString().toLowerCase().includes(query))
             );
 
-            // 2. 페이지네이션 계산
             const totalPages = Math.ceil(filtered.length / itemsPerPage);
             const start = (currentPage - 1) * itemsPerPage;
             const pagedList = filtered.slice(start, start + itemsPerPage);
 
             if (pagedList.length === 0) {
-                area.innerHTML = '<div style="text-align:center; padding: 40px; color:#7f8c8d;">내용이 없습니다.</div>';
+                area.innerHTML = '<div style="text-align:center; grid-column: 1 / -1; padding: 40px; color:#7f8c8d;">내용이 없습니다.</div>';
                 return;
             }
 
-            // 3. 카드 출력
             pagedList.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.innerHTML = `
                     <div class="word-header">
                         <div class="word-title">${item.word}</div>
-                        ${item.pron ? `<div style="color:#7f8c8d; font-size:16px;">[${item.pron}]</div>` : ''}
+                        ${item.pron ? `<div style="color:#7f8c8d; font-size:13px;">[${item.pron}]</div>` : ''}
                         <div class="meaning">${item.mean}</div>
                     </div>
                     <div class="examples-wrapper">
                         <div class="example-box">
-                            <div style="font-size:18px; color:#333;"><strong>${item.ex_main || ''}</strong></div>
-                            ${item.ex_pron ? `<div style="color:#7f8c8d; font-size:14px; margin-top:5px;">${item.ex_pron}</div>` : ''}
-                            <div style="color:#e74c3c; font-size:16px; font-weight:bold; margin-top:8px;">${item.ex_kr || ''}</div>
+                            <strong>${item.ex_main || ''}</strong><br>
+                            ${item.ex_pron ? `<small style="color:gray;">${item.ex_pron}</small><br>` : ''}
+                            <small style="color:#e74c3c; font-weight:bold;">${item.ex_kr || ''}</small>
                         </div>
                     </div>
                 `;
                 area.appendChild(card);
             });
 
-            // 4. 페이지 버튼 생성
             if (totalPages > 1) {
                 for (let i = 1; i <= totalPages; i++) {
                     const btn = document.createElement('button');
