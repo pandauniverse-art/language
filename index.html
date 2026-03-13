@@ -15,20 +15,20 @@
         .search-container { display: flex; justify-content: center; margin-bottom: 30px; }
         #search-input { width: 100%; max-width: 500px; padding: 12px 20px; border: 2px solid #bdc3c7; border-radius: 25px; outline: none; font-size: 16px; }
 
-        #content-area { display: grid; gap: 20px; grid-template-columns: 1fr; }
+        #content-area { display: grid; gap: 20px; grid-template-columns: 1fr; min-height: 400px; }
         
-        /* [수정] 단어가 이동하는 transition 속도를 0.3s -> 0.9s로 3배 느리게 설정 */
-        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; align-items: center; transition: transform 0.9s, box-shadow 0.9s, align-items 0.9s; cursor: pointer; min-height: 120px; }
+        /* 단어 이동 속도 0.9s (느리게) */
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: flex; align-items: center; transition: transform 0.9s, box-shadow 0.9s; cursor: pointer; min-height: 120px; }
         .card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
         
-        .word-header { flex: 1; text-align: center; }
+        .word-header { flex: 1; text-align: center; transition: transform 0.9s; }
         .word-title { font-size: 30px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
         .meaning { font-size: 20px; color: #e74c3c; font-weight: bold; }
         
         /* 오른쪽 예문 영역 */
         .examples-wrapper { display: none; flex: 2; margin-left: 35px; padding-left: 35px; border-left: 1px dashed #bdc3c7; text-align: left; }
         
-        /* [수정] 애니메이션 시간을 1.2s -> 0.4s로 3배 빠르게 설정 */
+        /* 문장 등장 속도 0.4s (빠르게) */
         .card:hover .examples-wrapper { display: block; animation: fadeInRight 0.4s ease-out forwards; }
         
         @keyframes fadeInRight { 
@@ -37,11 +37,18 @@
         }
 
         .example-box { background-color: #f8f9fa; padding: 15px; border-radius: 10px; border-left: 5px solid #34495e; }
+
+        /* 페이지네이션 스타일 */
+        .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 40px; margin-bottom: 50px; flex-wrap: wrap; }
+        .page-btn { padding: 8px 16px; background-color: white; border: 1px solid #bdc3c7; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .page-btn:hover { background-color: #ecf0f1; }
+        .page-btn.active { background-color: #34495e; color: white; border-color: #34495e; }
+
         #loading { text-align: center; padding: 50px; font-weight: bold; font-size: 1.2em; color: #34495e; }
 
         @media (max-width: 600px) {
-            .card { flex-direction: column; text-align: center; transition: none; } /* 모바일은 애니메이션 끔 */
-            .examples-wrapper { margin-left: 0; padding-left: 0; border-left: none; border-top: 1px dashed #bdc3c7; margin-top: 20px; width: 100%; animation: none; }
+            .card { flex-direction: column; text-align: center; }
+            .examples-wrapper { margin-left: 0; padding-left: 0; border-left: none; border-top: 1px dashed #bdc3c7; margin-top: 20px; width: 100%; }
         }
     </style>
 </head>
@@ -56,57 +63,72 @@
     </div>
 
     <div class="search-container">
-        <input type="text" id="search-input" placeholder="🔍 단어, 뜻 검색..." onkeyup="renderData()">
+        <input type="text" id="search-input" placeholder="🔍 단어, 뜻 검색..." onkeyup="resetAndRender()">
     </div>
 
     <div id="content-area"></div>
+    <div class="pagination" id="pagination"></div>
 
     <script>
-        // 본인의 무료 API 주소
         const API_URL = "https://script.google.com/macros/s/AKfycbx5o78Fj9y1laaIZZelmzDWmb90QxyA3gQIwXoa5JE7FzPOgEf_S7OPDEjxQYHvDYAdlA/exec";
 
         let allData = { japanese: [], english: [] };
         let currentLang = localStorage.getItem('lang') || 'japanese';
+        let currentPage = 1;
+        const itemsPerPage = 20; // 20개씩 보기
 
         async function loadSheetData() {
             try {
                 const response = await fetch(API_URL);
                 const data = await response.json();
                 allData = data;
-
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('lang-nav').style.display = 'flex';
                 renderData();
             } catch (e) {
-                document.getElementById('loading').innerText = "로드 실패. 시트 이름이 'japanese', 'english'인지 확인하세요.";
-                console.error(e);
+                document.getElementById('loading').innerText = "데이터 로드 실패.";
             }
         }
 
         function setLang(l) { 
             currentLang = l; 
             localStorage.setItem('lang', l); 
+            currentPage = 1; // 언어 변경 시 1페이지로
             renderData(); 
+        }
+
+        function resetAndRender() {
+            currentPage = 1; // 검색 시 1페이지로
+            renderData();
         }
 
         function renderData() {
             const area = document.getElementById('content-area');
+            const pagArea = document.getElementById('pagination');
             const query = document.getElementById('search-input').value.toLowerCase();
             area.innerHTML = '';
+            pagArea.innerHTML = '';
             
             document.querySelectorAll('#lang-nav button').forEach(b => b.className = b.id.includes(currentLang) ? 'active' : '');
 
-            const list = (allData[currentLang] || []).filter(item => 
+            // 1. 필터링
+            const filtered = (allData[currentLang] || []).filter(item => 
                 (item.word && item.word.toString().toLowerCase().includes(query)) || 
                 (item.mean && item.mean.toString().toLowerCase().includes(query))
             );
 
-            if (list.length === 0) {
-                area.innerHTML = '<div style="text-align:center; padding: 40px; color:#7f8c8d;">단어가 없습니다. 시트에 내용을 추가해주세요.</div>';
+            // 2. 페이지네이션 계산
+            const totalPages = Math.ceil(filtered.length / itemsPerPage);
+            const start = (currentPage - 1) * itemsPerPage;
+            const pagedList = filtered.slice(start, start + itemsPerPage);
+
+            if (pagedList.length === 0) {
+                area.innerHTML = '<div style="text-align:center; padding: 40px; color:#7f8c8d;">내용이 없습니다.</div>';
                 return;
             }
 
-            list.forEach(item => {
+            // 3. 카드 출력
+            pagedList.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.innerHTML = `
@@ -125,6 +147,21 @@
                 `;
                 area.appendChild(card);
             });
+
+            // 4. 페이지 버튼 생성
+            if (totalPages > 1) {
+                for (let i = 1; i <= totalPages; i++) {
+                    const btn = document.createElement('button');
+                    btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+                    btn.innerText = i;
+                    btn.onclick = () => {
+                        currentPage = i;
+                        renderData();
+                        window.scrollTo(0,0);
+                    };
+                    pagArea.appendChild(btn);
+                }
+            }
         }
 
         window.onload = loadSheetData;
