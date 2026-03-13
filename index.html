@@ -6,25 +6,31 @@
     <title>나만의 어학 공부 사이트</title>
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f4f7f6; }
-        h1 { text-align: center; color: #2c3e50; }
-        .nav-group { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
+        h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; }
+        
+        /* 네비게이션 버튼 디자인 */
+        .nav-group { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
         button { padding: 10px 20px; border: none; background-color: #bdc3c7; color: #2c3e50; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: bold; transition: 0.2s; }
         button:hover { background-color: #95a5a6; }
         button.active { background-color: #34495e; color: white; }
         
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        /* 콘텐츠 영역 (문자 모드일 때는 바둑판 배열로 변경) */
+        #content-area { display: grid; gap: 15px; grid-template-columns: 1fr; }
+        #content-area.grid-mode { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+        
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         
         /* 문자(알파벳/가나)용 디자인 */
-        .char-title { font-size: 40px; font-weight: bold; color: #2980b9; text-align: center; margin-bottom: 5px; }
-        .char-sub { font-size: 18px; color: #7f8c8d; text-align: center; }
+        .char-title { font-size: 36px; font-weight: bold; color: #2980b9; text-align: center; margin-bottom: 10px; }
+        .char-sub { font-size: 16px; color: #7f8c8d; text-align: center; line-height: 1.4; }
         
         /* 단어/문장용 디자인 */
-        .word-title { font-size: 28px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
-        .pronunciation { font-size: 18px; color: #7f8c8d; margin-bottom: 10px; }
-        .meaning { font-size: 20px; font-weight: bold; color: #e74c3c; margin-bottom: 20px; }
-        .example-box { background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #bdc3c7; }
-        .example-text { font-size: 16px; color: #333; margin-bottom: 5px; }
-        .example-translation { font-size: 15px; color: #7f8c8d; }
+        .word-title { font-size: 26px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
+        .pronunciation { font-size: 16px; color: #7f8c8d; margin-bottom: 10px; }
+        .meaning { font-size: 18px; font-weight: bold; color: #e74c3c; margin-bottom: 15px; }
+        .example-box { background-color: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #bdc3c7; }
+        .example-text { font-size: 15px; color: #333; margin-bottom: 4px; }
+        .example-translation { font-size: 14px; color: #7f8c8d; }
     </style>
 </head>
 <body>
@@ -45,44 +51,35 @@
     <div id="content-area"></div>
 
     <script>
-        // 현재 선택된 상태 저장
         let currentLang = 'japanese';
-        let currentCategory = 'words';
+        let currentCategory = 'chars'; // 처음에 기초 문자가 보이도록 설정
 
         // ================= 데이터베이스 =================
         const db = {
             japanese: {
                 chars: [
-                    { char: "あ / ア", read: "a (아)", detail: "히라가나 'あ' / 가타카나 'ア'" },
-                    { char: "い / イ", read: "i (이)", detail: "히라가나 'い' / 가타카나 'イ'" },
-                    { char: "う / ウ", read: "u (우)", detail: "히라가나 'う' / 가타카나 'ウ'" }
+                    { char: "あ / ア", read: "a (아)" }, { char: "い / イ", read: "i (이)" }, { char: "う / ウ", read: "u (우)" }, { char: "え / エ", read: "e (에)" }, { char: "お / オ", read: "o (오)" },
+                    { char: "か / カ", read: "ka (카)" }, { char: "き / キ", read: "ki (키)" }, { char: "く / ク", read: "ku (쿠)" }, { char: "け / ケ", read: "ke (케)" }, { char: "こ / コ", read: "ko (코)" },
+                    { char: "さ / サ", read: "sa (사)" }, { char: "し / シ", read: "shi (시)" }, { char: "す / ス", read: "su (스)" }, { char: "せ / セ", read: "se (세)" }, { char: "そ / ソ", read: "so (소)" },
+                    { char: "た / タ", read: "ta (타)" }, { char: "ち / チ", read: "chi (치)" }, { char: "つ / ツ", read: "tsu (츠)" }, { char: "て / テ", read: "te (테)" }, { char: "と / ト", read: "to (토)" },
+                    { char: "な / ナ", read: "na (나)" }, { char: "に / ニ", read: "ni (니)" }, { char: "ぬ / ヌ", read: "nu (누)" }, { char: "ね / ネ", read: "ne (네)" }, { char: "の / ノ", read: "no (노)" },
+                    { char: "は / ハ", read: "ha (하)" }, { char: "ひ / ヒ", read: "hi (히)" }, { char: "ふ / フ", read: "fu (후/푸)" }, { char: "へ / ヘ", read: "he (헤)" }, { char: "ほ / ホ", read: "ho (호)" },
+                    { char: "ま / マ", read: "ma (마)" }, { char: "み / ミ", read: "mi (미)" }, { char: "む / ム", read: "mu (무)" }, { char: "め / メ", read: "me (메)" }, { char: "も / モ", read: "mo (모)" },
+                    { char: "や / ヤ", read: "ya (야)" }, { char: "ゆ / ユ", read: "yu (유)" }, { char: "よ / ヨ", read: "yo (요)" },
+                    { char: "ら / ラ", read: "ra (라)" }, { char: "り / リ", read: "ri (리)" }, { char: "る / ル", read: "ru (루)" }, { char: "れ / レ", read: "re (레)" }, { char: "ろ / ロ", read: "ro (로)" },
+                    { char: "わ / ワ", read: "wa (와)" }, { char: "を / ヲ", read: "wo (오/워)" }, { char: "ん / ン", read: "n (응)" }
                 ],
                 words: [
                     {
-                        kanji: "発展",
-                        hiragana: "はってん",
-                        korean: "발전",
+                        kanji: "発展", hiragana: "はってん", korean: "발전",
                         examples: [
-                            { main: "経済が大きく発展する。", sub: "けいざいがおおきくはってんする。", kr: "경제가 크게 발전하다." },
-                            { main: "両国の関係が発展を遂げた。", sub: "りょうこくのかんけいがはってんをとげた。", kr: "양국 관계가 발전을 이루었다." },
-                            { main: "この町は急速に発展している。", sub: "このまちはきゅうそくにはってんしている。", kr: "이 마을은 급속히 발전하고 있다." }
-                        ]
-                    },
-                    {
-                        kanji: "習慣",
-                        hiragana: "しゅうかん",
-                        korean: "습관",
-                        examples: [
-                            { main: "早起きの習慣をつける。", sub: "はやおきのしゅうかんをつける。", kr: "일찍 일어나는 습관을 기르다." },
-                            { main: "食習慣を見直す。", sub: "しょくしゅうかんをみなおす。", kr: "식습관을 재검토하다." }
+                            { main: "経済が大きく発展する。", sub: "けいざいがおおきくはってんする。", kr: "경제가 크게 발전하다." }
                         ]
                     }
                 ],
                 sentences: [
                     {
-                        kanji: "お世話になっております。",
-                        hiragana: "おせわになっております。",
-                        korean: "신세 지고 있습니다. (비즈니스 인사말)",
+                        kanji: "お世話になっております。", hiragana: "おせわになっております。", korean: "신세 지고 있습니다. (비즈니스 인사말)",
                         examples: [
                             { main: "いつも大変お世話になっております。", sub: "いつもたいへんおせわになっております。", kr: "항상 대단히 신세 지고 있습니다." }
                         ]
@@ -91,32 +88,25 @@
             },
             english: {
                 chars: [
-                    { char: "A a", read: "[eɪ] 에이", detail: "예: Apple" },
-                    { char: "B b", read: "[biː] 비-", detail: "예: Banana" },
-                    { char: "C c", read: "[siː] 씨-", detail: "예: Cat" }
+                    { char: "A a", read: "[eɪ] 에이" }, { char: "B b", read: "[biː] 비" }, { char: "C c", read: "[siː] 씨" }, { char: "D d", read: "[diː] 디" },
+                    { char: "E e", read: "[iː] 이" }, { char: "F f", read: "[ef] 에프" }, { char: "G g", read: "[dʒiː] 지" }, { char: "H h", read: "[eɪtʃ] 에이치" },
+                    { char: "I i", read: "[aɪ] 아이" }, { char: "J j", read: "[dʒeɪ] 제이" }, { char: "K k", read: "[keɪ] 케이" }, { char: "L l", read: "[el] 엘" },
+                    { char: "M m", read: "[em] 엠" }, { char: "N n", read: "[en] 엔" }, { char: "O o", read: "[oʊ] 오우" }, { char: "P p", read: "[piː] 피" },
+                    { char: "Q q", read: "[kjuː] 큐" }, { char: "R r", read: "[ɑːr] 아르" }, { char: "S s", read: "[es] 에스" }, { char: "T t", read: "[tiː] 티" },
+                    { char: "U u", read: "[juː] 유" }, { char: "V v", read: "[viː] 브이" }, { char: "W w", read: "[ˈdʌbljuː] 더블유" }, { char: "X x", read: "[eks] 엑스" },
+                    { char: "Y y", read: "[waɪ] 와이" }, { char: "Z z", read: "[ziː/zed] 지/제트" }
                 ],
                 words: [
                     {
-                        word: "Implement",
-                        korean: "실행하다, 도입하다",
+                        word: "Implement", korean: "실행하다, 도입하다",
                         examples: [
-                            { main: "The government implemented a new policy.", kr: "정부는 새로운 정책을 실행했다." },
-                            { main: "We need to implement the changes immediately.", kr: "우리는 그 변경 사항을 즉시 도입해야 한다." }
-                        ]
-                    },
-                    {
-                        word: "Substantial",
-                        korean: "상당한, 크고 중요한",
-                        examples: [
-                            { main: "There was a substantial increase in sales.", kr: "매출에 상당한 증가가 있었다." },
-                            { main: "She made a substantial contribution to the project.", kr: "그녀는 프로젝트에 상당한 기여를 했다." }
+                            { main: "The government implemented a new policy.", kr: "정부는 새로운 정책을 실행했다." }
                         ]
                     }
                 ],
                 sentences: [
                     {
-                        word: "I look forward to hearing from you.",
-                        korean: "당신의 답장을 고대하고 있겠습니다. (이메일 맺음말)",
+                        word: "I look forward to hearing from you.", korean: "당신의 답장을 고대하고 있겠습니다.",
                         examples: [
                             { main: "We look forward to working with you.", kr: "당신과 함께 일하기를 고대합니다." }
                         ]
@@ -147,20 +137,25 @@
             const contentArea = document.getElementById('content-area');
             contentArea.innerHTML = ''; 
 
+            // 문자 모드일 때는 한 줄에 여러 개 나오도록 바둑판 배열 클래스 추가
+            if (currentCategory === 'chars') {
+                contentArea.classList.add('grid-mode');
+            } else {
+                contentArea.classList.remove('grid-mode');
+            }
+
             const dataList = db[currentLang][currentCategory];
 
             dataList.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'card';
 
-                // 1. 기초 문자 모드일 때
                 if (currentCategory === 'chars') {
                     card.innerHTML = `
                         <div class="char-title">${item.char}</div>
-                        <div class="char-sub"><strong>${item.read}</strong> <br> ${item.detail}</div>
+                        <div class="char-sub"><strong>${item.read}</strong></div>
                     `;
                 } 
-                // 2. 단어/문장 모드일 때 (일본어)
                 else if (currentLang === 'japanese') {
                     let examplesHtml = item.examples.map(ex => `
                         <div class="example-box">
@@ -176,7 +171,6 @@
                         <div>${examplesHtml}</div>
                     `;
                 } 
-                // 3. 단어/문장 모드일 때 (영어)
                 else if (currentLang === 'english') {
                     let examplesHtml = item.examples.map(ex => `
                         <div class="example-box">
