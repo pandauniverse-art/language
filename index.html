@@ -12,37 +12,45 @@
         button { padding: 10px 20px; border: none; background-color: #bdc3c7; color: #2c3e50; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: bold; transition: 0.2s; }
         button.active { background-color: #34495e; color: white; }
         button.test-btn { background-color: #e67e22; color: white; }
-        button.test-btn:hover { background-color: #d35400; }
         
         .search-container { display: flex; justify-content: center; margin-bottom: 25px; }
-        #search-input { width: 100%; max-width: 500px; padding: 10px 20px; border: 2px solid #bdc3c7; border-radius: 25px; outline: none; font-size: 15px; }
+        #search-input { width: 100%; max-width: 500px; padding: 10px 20px; border: 2px solid #bdc3c7; border-radius: 25px; outline: none; font-size: 15px; text-align: center; }
 
+        /* 2열(2xN) 그리드 */
         #content-area { display: grid; gap: 15px; grid-template-columns: 1fr 1fr; min-height: 300px; }
-        .card { background: white; padding: 15px 20px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; align-items: center; transition: 0.9s; cursor: pointer; min-height: 70px; }
+        
+        /* 카드 중앙 정렬 및 세로폭 축소 */
+        .card { 
+            background: white; padding: 15px 20px; border-radius: 12px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; /* 중앙 정렬 */
+            transition: 0.9s; cursor: pointer; min-height: 80px; text-align: center;
+        }
         .card:hover { transform: translateY(-3px); box-shadow: 0 5px 12px rgba(0,0,0,0.1); }
         
-        .word-header { flex: 1; text-align: center; }
+        .word-header { width: 100%; }
         .word-title { font-size: 22px; font-weight: bold; color: #2c3e50; margin-bottom: 2px; }
         .meaning { font-size: 16px; color: #e74c3c; font-weight: bold; }
         
-        .examples-wrapper { display: none; flex: 1.5; margin-left: 20px; padding-left: 20px; border-left: 1px dashed #bdc3c7; text-align: left; }
-        .card:hover .examples-wrapper { display: block; animation: fadeInRight 0.4s ease-out forwards; }
+        /* 마우스 올렸을 때 예문 표시 (중앙 정렬 유지) */
+        .examples-wrapper { display: none; width: 100%; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #bdc3c7; }
+        .card:hover .examples-wrapper { display: block; animation: fadeIn 0.4s ease-out forwards; }
         
-        @keyframes fadeInRight { from { opacity: 0; transform: translateX(15px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* 시험 모드 스타일 */
         #test-container { display: none; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
         .quiz-question { font-size: 32px; font-weight: bold; margin-bottom: 30px; }
         .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .option-btn { padding: 15px; font-size: 18px; border: 2px solid #bdc3c7; border-radius: 10px; background: none; cursor: pointer; transition: 0.2s; }
-        .option-btn:hover { background-color: #ecf0f1; border-color: #34495e; }
-        .quiz-progress { margin-top: 20px; color: #7f8c8d; }
+        .option-btn { padding: 15px; font-size: 18px; border: 2px solid #bdc3c7; border-radius: 10px; cursor: pointer; }
 
-        .pagination { display: flex; justify-content: center; gap: 5px; margin-top: 30px; margin-bottom: 50px; flex-wrap: wrap; }
-        .page-btn { padding: 6px 12px; background-color: white; border: 1px solid #bdc3c7; border-radius: 4px; cursor: pointer; }
-        .page-btn.active { background-color: #34495e; color: white; }
+        /* [수정] 페이지네이션 버튼 위치 가운데 정렬 */
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin: 40px 0; flex-wrap: wrap; width: 100%; }
+        .page-btn { padding: 8px 14px; background-color: white; border: 1px solid #bdc3c7; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .page-btn.active { background-color: #34495e; color: white; border-color: #34495e; }
 
-        #loading { text-align: center; padding: 50px; font-weight: bold; font-size: 1.1em; color: #34495e; }
+        /* [수정] 로딩 문구 변경 */
+        #loading { text-align: center; padding: 100px 20px; font-weight: bold; font-size: 1.2em; color: #34495e; }
 
         @media (max-width: 768px) {
             #content-area { grid-template-columns: 1fr; }
@@ -53,7 +61,8 @@
 <body>
 
     <h1>📚 실시간 어학 사전</h1>
-    <div id="loading">사이트를 정리중입니다</div>
+    
+    <div id="loading">사이트 최신화 중입니다</div>
     
     <div class="nav-group" id="main-nav" style="display:none;">
         <button id="btn-japanese" onclick="setLang('japanese')">🇯🇵 일본어</button>
@@ -70,10 +79,10 @@
     </div>
 
     <div id="test-container">
-        <div class="quiz-progress" id="quiz-status"></div>
+        <div id="quiz-status" style="margin-bottom: 10px; color: #7f8c8d;"></div>
         <div class="quiz-question" id="quiz-word">단어</div>
         <div class="quiz-options" id="quiz-options"></div>
-        <button onclick="exitTest()" style="margin-top:30px; background:#95a5a6; color:white;">시험 종료</button>
+        <button onclick="exitTest()" style="margin-top:30px; background:#95a5a6; color:white; border-radius: 5px;">시험 종료</button>
     </div>
 
     <script>
@@ -84,7 +93,6 @@
         let currentPage = 1;
         const itemsPerPage = 20;
 
-        // 시험 관련 변수
         let testWords = [];
         let currentQuestionIdx = 0;
         let score = 0;
@@ -130,72 +138,66 @@
             pagedList.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.innerHTML = `<div class="word-header"><div class="word-title">${item.word}</div><div class="meaning">${item.mean}</div></div>
-                    <div class="examples-wrapper"><div class="example-box"><strong>${item.ex_main || ''}</strong><br><small style="color:#e74c3c; font-weight:bold;">${item.ex_kr || ''}</small></div></div>`;
+                card.innerHTML = `
+                    <div class="word-header">
+                        <div class="word-title">${item.word}</div>
+                        ${item.pron ? `<div style="color:gray; font-size:14px;">[${item.pron}]</div>` : ''}
+                        <div class="meaning">${item.mean}</div>
+                    </div>
+                    <div class="examples-wrapper">
+                        <div style="background:#f8f9fa; padding:10px; border-radius:8px; font-size:14px;">
+                            <strong>${item.ex_main || ''}</strong><br>
+                            <span style="color:#e74c3c;">${item.ex_kr || ''}</span>
+                        </div>
+                    </div>`;
                 area.appendChild(card);
             });
 
-            for (let i = 1; i <= totalPages; i++) {
-                const btn = document.createElement('button');
-                btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
-                btn.innerText = i;
-                btn.onclick = () => { currentPage = i; renderData(); window.scrollTo(0,0); };
-                pagArea.appendChild(btn);
+            if (totalPages > 1) {
+                for (let i = 1; i <= totalPages; i++) {
+                    const btn = document.createElement('button');
+                    btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+                    btn.innerText = i;
+                    btn.onclick = () => { currentPage = i; renderData(); window.scrollTo(0,0); };
+                    pagArea.appendChild(btn);
+                }
             }
         }
 
-        // 시험 모드 함수
         function startTest() {
             const data = allData[currentLang] || [];
-            if (data.length < 5) { alert("시험을 보려면 최소 5개 이상의 단어가 필요합니다."); return; }
-            
+            if (data.length < 5) { alert("단어가 부족합니다."); return; }
             document.getElementById('study-mode').style.display = 'none';
             document.getElementById('test-container').style.display = 'block';
-            
-            // 20개 랜덤 추출
             testWords = [...data].sort(() => 0.5 - Math.random()).slice(0, 20);
-            currentQuestionIdx = 0;
-            score = 0;
+            currentQuestionIdx = 0; score = 0;
             showQuestion();
         }
 
         function showQuestion() {
             if (currentQuestionIdx >= testWords.length) {
-                alert(`시험 종료! 최종 점수: ${score} / ${testWords.length}`);
-                exitTest();
-                return;
+                alert(`시험 종료! 점수: ${score} / ${testWords.length}`);
+                exitTest(); return;
             }
-
             const current = testWords[currentQuestionIdx];
             document.getElementById('quiz-status').innerText = `문제 ${currentQuestionIdx + 1} / ${testWords.length}`;
             document.getElementById('quiz-word').innerText = current.word;
-            
-            // 오답 생성 (현재 정답 제외하고 랜덤 3개)
             let others = allData[currentLang].filter(item => item.mean !== current.mean);
             let decoys = others.sort(() => 0.5 - Math.random()).slice(0, 3).map(i => i.mean);
-            
             let options = [...decoys, current.mean].sort(() => 0.5 - Math.random());
-            
             const optArea = document.getElementById('quiz-options');
             optArea.innerHTML = '';
             options.forEach(opt => {
                 const btn = document.createElement('button');
                 btn.className = 'option-btn';
                 btn.innerText = opt;
-                btn.onclick = () => checkAnswer(opt, current.mean);
+                btn.onclick = () => {
+                    if (opt === current.mean) { score++; alert("정답! ✨"); }
+                    else { alert(`오답! 정답은: ${current.mean}`); }
+                    currentQuestionIdx++; showQuestion();
+                };
                 optArea.appendChild(btn);
             });
-        }
-
-        function checkAnswer(selected, correct) {
-            if (selected === correct) {
-                score++;
-                alert("정답입니다! ✨");
-            } else {
-                alert(`틀렸습니다. 정답은 [ ${correct} ] 입니다. 😢`);
-            }
-            currentQuestionIdx++;
-            showQuestion();
         }
 
         function exitTest() {
