@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>나만의 어학 공부 사이트</title>
+    <style>
+        /* 사이트 전체 디자인 (CSS) */
+        body { font-family: 'Malgun Gothic', sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f4f7f6; }
+        h1 { text-align: center; color: #2c3e50; }
+        .nav { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; }
+        button { padding: 12px 24px; border: none; background-color: #34495e; color: white; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        button:hover { background-color: #2c3e50; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .word-title { font-size: 28px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
+        .pronunciation { font-size: 18px; color: #7f8c8d; margin-bottom: 10px; }
+        .meaning { font-size: 20px; font-weight: bold; color: #e74c3c; margin-bottom: 20px; }
+        .example-box { background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #bdc3c7; }
+        .example-text { font-size: 16px; color: #333; margin-bottom: 5px; }
+        .example-translation { font-size: 15px; color: #7f8c8d; }
+    </style>
+</head>
+<body>
+
+    <h1>📚 나만의 어학 사전</h1>
+    
+    <div class="nav">
+        <button onclick="renderData('japanese')">🇯🇵 일본어</button>
+        <button onclick="renderData('english')">🇺🇸 영어</button>
+    </div>
+
+    <div id="content-area"></div>
+
+    <script>
+        // 1. 일본어 데이터베이스 (직접 단어를 추가하는 곳)
+        const japaneseData = [
+            {
+                kanji: "発展",
+                hiragana: "はってん",
+                korean: "발전",
+                examples: [
+                    { jp: "経済が大きく発展する。", hira: "けいざいがおおきくはってんする。", kr: "경제가 크게 발전하다." },
+                    { jp: "両国の関係が発展を遂げた。", hira: "りょうこくのかんけいがはってんをとげた。", kr: "양국 관계가 발전을 이루었다." },
+                    { jp: "この町は最近、急速に発展している。", hira: "このまちはさいきん、きゅうそくにはってんしている。", kr: "이 마을은 최근 급속히 발전하고 있다." }
+                ]
+            },
+            {
+                kanji: "習慣",
+                hiragana: "しゅうかん",
+                korean: "습관",
+                examples: [
+                    { jp: "早起きの習慣をつける。", hira: "はやおきのしゅうかんをつける。", kr: "일찍 일어나는 습관을 기르다." },
+                    { jp: "食習慣を見直す必要がある。", hira: "しょくしゅうかんをみなおすひつようがある。", kr: "식습관을 재검토할 필요가 있다." },
+                    { jp: "それは悪い習慣です。", hira: "それはわるいしゅうかんです。", kr: "그것은 나쁜 습관입니다." }
+                ]
+            }
+        ];
+
+        // 2. 영어 데이터베이스 (직접 단어를 추가하는 곳)
+        const englishData = [
+            {
+                word: "Implement",
+                meaning: "실행하다, 도입하다",
+                examples: [
+                    { en: "The government implemented a new policy.", kr: "정부는 새로운 정책을 실행했다." },
+                    { en: "We need to implement the changes immediately.", kr: "우리는 그 변경 사항을 즉시 도입해야 한다." },
+                    { en: "The system was successfully implemented.", kr: "그 시스템은 성공적으로 도입되었다." }
+                ]
+            }
+        ];
+
+        // 3. 화면에 단어 카드를 그려주는 로직
+        function renderData(language) {
+            const contentArea = document.getElementById('content-area');
+            contentArea.innerHTML = ''; 
+
+            const data = language === 'japanese' ? japaneseData : englishData;
+
+            data.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+
+                if (language === 'japanese') {
+                    // 일본어 예문 반복 생성
+                    let examplesHtml = item.examples.map(ex => `
+                        <div class="example-box">
+                            <div class="example-text"><strong>${ex.jp}</strong> <span style="font-size: 0.9em; color: #7f8c8d;">(${ex.hira})</span></div>
+                            <div class="example-translation">${ex.kr}</div>
+                        </div>
+                    `).join('');
+
+                    card.innerHTML = `
+                        <div class="word-title">${item.kanji}</div>
+                        <div class="pronunciation">[${item.hiragana}]</div>
+                        <div class="meaning">${item.korean}</div>
+                        <div>${examplesHtml}</div>
+                    `;
+                } else {
+                    // 영어 예문 반복 생성
+                    let examplesHtml = item.examples.map(ex => `
+                        <div class="example-box">
+                            <div class="example-text"><strong>${ex.en}</strong></div>
+                            <div class="example-translation">${ex.kr}</div>
+                        </div>
+                    `).join('');
+
+                    card.innerHTML = `
+                        <div class="word-title">${item.word}</div>
+                        <div class="meaning">${item.meaning}</div>
+                        <div>${examplesHtml}</div>
+                    `;
+                }
+                contentArea.appendChild(card);
+            });
+        }
+
+        // 페이지를 처음 열었을 때 기본으로 일본어를 보여줌
+        renderData('japanese');
+    </script>
+</body>
+</html>
