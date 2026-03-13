@@ -13,12 +13,38 @@
         button.active { background-color: #34495e; color: white; }
         #content-area { display: grid; gap: 15px; grid-template-columns: 1fr; margin-top: 20px; }
         #content-area.grid-mode { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+        
         .char-title { font-size: 36px; font-weight: bold; color: #2980b9; text-align: center; margin-bottom: 10px; }
         .char-sub { font-size: 16px; color: #7f8c8d; text-align: center; line-height: 1.4; }
-        .word-title { font-size: 26px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
-        .pronunciation { font-size: 16px; color: #7f8c8d; margin-bottom: 10px; }
-        .meaning { font-size: 18px; font-weight: bold; color: #e74c3c; margin-bottom: 15px; }
+        
+        .word-header { display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .word-title { font-size: 28px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
+        .pronunciation { font-size: 16px; color: #7f8c8d; margin-bottom: 5px; }
+        .meaning { font-size: 20px; font-weight: bold; color: #e74c3c; }
+        
+        /* 마우스 오버 시 나타나는 예문 영역 */
+        .examples-wrapper { 
+            display: none; /* 기본적으로 숨김 */
+            margin-top: 20px; 
+            border-top: 1px dashed #bdc3c7; 
+            padding-top: 15px; 
+        }
+        .card:hover .examples-wrapper { 
+            display: block; /* 마우스를 올리면 표시 */
+            animation: fadeIn 0.4s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hover-hint { font-size: 12px; color: #95a5a6; text-align: center; margin-top: 15px; }
+        .card:hover .hover-hint { display: none; } /* 마우스 올리면 힌트 숨김 */
+
         .example-box { background-color: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #bdc3c7; }
         .example-text { font-size: 15px; color: #333; margin-bottom: 4px; }
         .example-translation { font-size: 14px; color: #7f8c8d; }
@@ -38,18 +64,15 @@
 
     <script>
         let currentLang = 'japanese';
-        let currentCategory = 'hiragana'; 
+        let currentCategory = 'words'; // 단어 테스트를 위해 기본값을 단어장으로 변경
 
         const categories = {
             japanese: [
-                { id: 'hiragana', name: '히라가나' },
-                { id: 'katakana', name: '가타카나' },
-                { id: 'words', name: '단어장' },
-                { id: 'sentences', name: '핵심 문장' }
+                { id: 'hiragana', name: '히라가나' }, { id: 'katakana', name: '가타카나' },
+                { id: 'words', name: '단어장' }, { id: 'sentences', name: '핵심 문장' }
             ],
             english: [
-                { id: 'alphabet', name: '알파벳' },
-                { id: 'words', name: '단어장' },
+                { id: 'alphabet', name: '알파벳' }, { id: 'words', name: '단어장' },
                 { id: 'sentences', name: '핵심 문장' }
             ]
         };
@@ -68,7 +91,7 @@
 
         function setLang(lang) {
             currentLang = lang;
-            currentCategory = lang === 'japanese' ? 'hiragana' : 'alphabet'; 
+            currentCategory = 'words'; 
             renderCategoryNav();
             renderData();
         }
@@ -79,9 +102,8 @@
         }
 
         function updateButtonStyles() {
-            document.querySelectorAll('#lang-nav button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('#lang-nav button, #cat-nav button').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`btn-${currentLang}`).classList.add('active');
-            document.querySelectorAll('#cat-nav button').forEach(btn => btn.classList.remove('active'));
             const activeCatBtn = document.getElementById(`btn-${currentCategory}`);
             if(activeCatBtn) activeCatBtn.classList.add('active');
         }
@@ -97,7 +119,6 @@
                 contentArea.classList.remove('grid-mode');
             }
 
-            // db 객체는 data.js에서 가져옵니다
             const dataList = db[currentLang][currentCategory] || [];
 
             dataList.forEach(item => {
@@ -119,10 +140,13 @@
                     `).join('');
 
                     card.innerHTML = `
-                        <div class="word-title">${item.kanji}</div>
-                        <div class="pronunciation">[${item.hiragana}]</div>
-                        <div class="meaning">${item.korean}</div>
-                        <div>${examplesHtml}</div>
+                        <div class="word-header">
+                            <div class="word-title">${item.kanji}</div>
+                            <div class="pronunciation">[${item.hiragana}]</div>
+                            <div class="meaning">${item.korean}</div>
+                        </div>
+                        <div class="hover-hint">🖱️ 마우스를 올리면 예문 확인</div>
+                        <div class="examples-wrapper">${examplesHtml}</div>
                     `;
                 } 
                 else if (currentLang === 'english') {
@@ -134,9 +158,12 @@
                     `).join('');
 
                     card.innerHTML = `
-                        <div class="word-title">${item.word}</div>
-                        <div class="meaning">${item.korean}</div>
-                        <div>${examplesHtml}</div>
+                        <div class="word-header">
+                            <div class="word-title">${item.word}</div>
+                            <div class="meaning">${item.korean}</div>
+                        </div>
+                        <div class="hover-hint">🖱️ 마우스를 올리면 예문 확인</div>
+                        <div class="examples-wrapper">${examplesHtml}</div>
                     `;
                 }
                 contentArea.appendChild(card);
