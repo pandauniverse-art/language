@@ -7,24 +7,15 @@
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f4f7f6; }
         h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; }
-        
-        /* 네비게이션 버튼 디자인 */
         .nav-group { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
         button { padding: 10px 20px; border: none; background-color: #bdc3c7; color: #2c3e50; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: bold; transition: 0.2s; }
         button:hover { background-color: #95a5a6; }
         button.active { background-color: #34495e; color: white; }
-        
-        /* 콘텐츠 영역 (문자 모드일 때는 바둑판 배열로 변경) */
         #content-area { display: grid; gap: 15px; grid-template-columns: 1fr; margin-top: 20px; }
         #content-area.grid-mode { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
-        
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        
-        /* 문자용 디자인 */
         .char-title { font-size: 36px; font-weight: bold; color: #2980b9; text-align: center; margin-bottom: 10px; }
         .char-sub { font-size: 16px; color: #7f8c8d; text-align: center; line-height: 1.4; }
-        
-        /* 단어/문장용 디자인 */
         .word-title { font-size: 26px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
         .pronunciation { font-size: 16px; color: #7f8c8d; margin-bottom: 10px; }
         .meaning { font-size: 18px; font-weight: bold; color: #e74c3c; margin-bottom: 15px; }
@@ -32,6 +23,7 @@
         .example-text { font-size: 15px; color: #333; margin-bottom: 4px; }
         .example-translation { font-size: 14px; color: #7f8c8d; }
     </style>
+    <script src="data.js"></script>
 </head>
 <body>
 
@@ -41,17 +33,13 @@
         <button id="btn-japanese" onclick="setLang('japanese')">🇯🇵 일본어</button>
         <button id="btn-english" onclick="setLang('english')">🇺🇸 영어</button>
     </div>
-
     <div class="nav-group" id="cat-nav"></div>
-
     <div id="content-area"></div>
 
     <script>
-        // 현재 상태 저장
         let currentLang = 'japanese';
         let currentCategory = 'hiragana'; 
 
-        // 언어별 카테고리 메뉴 정의
         const categories = {
             japanese: [
                 { id: 'hiragana', name: '히라가나' },
@@ -66,84 +54,9 @@
             ]
         };
 
-        // ================= 데이터베이스 =================
-        const db = {
-            japanese: {
-                hiragana: [
-                    { char: "あ", read: "a (아)" }, { char: "い", read: "i (이)" }, { char: "う", read: "u (우)" }, { char: "え", read: "e (에)" }, { char: "お", read: "o (오)" },
-                    { char: "か", read: "ka (카)" }, { char: "き", read: "ki (키)" }, { char: "く", read: "ku (쿠)" }, { char: "け", read: "ke (케)" }, { char: "こ", read: "ko (코)" },
-                    { char: "さ", read: "sa (사)" }, { char: "し", read: "shi (시)" }, { char: "す", read: "su (스)" }, { char: "せ", read: "se (세)" }, { char: "そ", read: "so (소)" },
-                    { char: "た", read: "ta (타)" }, { char: "ち", read: "chi (치)" }, { char: "つ", read: "tsu (츠)" }, { char: "て", read: "te (테)" }, { char: "と", read: "to (토)" },
-                    { char: "な", read: "na (나)" }, { char: "に", read: "ni (니)" }, { char: "ぬ", read: "nu (누)" }, { char: "ね", read: "ne (네)" }, { char: "の", read: "no (노)" },
-                    { char: "は", read: "ha (하)" }, { char: "ひ", read: "hi (히)" }, { char: "ふ", read: "fu (후/푸)" }, { char: "へ", read: "he (헤)" }, { char: "ほ", read: "ho (호)" },
-                    { char: "ま", read: "ma (마)" }, { char: "み", read: "mi (미)" }, { char: "む", read: "mu (무)" }, { char: "め", read: "me (메)" }, { char: "も", read: "mo (모)" },
-                    { char: "や", read: "ya (야)" }, { char: "ゆ", read: "yu (유)" }, { char: "よ", read: "yo (요)" },
-                    { char: "ら", read: "ra (라)" }, { char: "り", read: "ri (리)" }, { char: "る", read: "ru (루)" }, { char: "れ", read: "re (레)" }, { char: "ろ", read: "ro (로)" },
-                    { char: "わ", read: "wa (와)" }, { char: "を", read: "wo (오/워)" }, { char: "ん", read: "n (응)" }
-                ],
-                katakana: [
-                    { char: "ア", read: "a (아)" }, { char: "イ", read: "i (이)" }, { char: "ウ", read: "u (우)" }, { char: "エ", read: "e (에)" }, { char: "オ", read: "o (오)" },
-                    { char: "カ", read: "ka (카)" }, { char: "キ", read: "ki (키)" }, { char: "ク", read: "ku (쿠)" }, { char: "ケ", read: "ke (케)" }, { char: "コ", read: "ko (코)" },
-                    { char: "サ", read: "sa (사)" }, { char: "シ", read: "shi (시)" }, { char: "ス", read: "su (스)" }, { char: "セ", read: "se (세)" }, { char: "ソ", read: "so (소)" },
-                    { char: "タ", read: "ta (타)" }, { char: "チ", read: "chi (치)" }, { char: "ツ", read: "tsu (츠)" }, { char: "テ", read: "te (테)" }, { char: "ト", read: "to (토)" },
-                    { char: "ナ", read: "na (나)" }, { char: "ニ", read: "ni (니)" }, { char: "ヌ", read: "nu (누)" }, { char: "ネ", read: "ne (네)" }, { char: "ノ", read: "no (노)" },
-                    { char: "ハ", read: "ha (하)" }, { char: "ヒ", read: "hi (히)" }, { char: "フ", read: "fu (후/푸)" }, { char: "ヘ", read: "he (헤)" }, { char: "ホ", read: "ho (호)" },
-                    { char: "マ", read: "ma (마)" }, { char: "ミ", read: "mi (미)" }, { char: "ム", read: "mu (무)" }, { char: "メ", read: "me (메)" }, { char: "モ", read: "mo (모)" },
-                    { char: "ヤ", read: "ya (야)" }, { char: "ユ", read: "yu (유)" }, { char: "ヨ", read: "yo (요)" },
-                    { char: "ラ", read: "ra (라)" }, { char: "リ", read: "ri (리)" }, { char: "ル", read: "ru (루)" }, { char: "レ", read: "re (레)" }, { char: "ロ", read: "ro (로)" },
-                    { char: "ワ", read: "wa (와)" }, { char: "ヲ", read: "wo (오/워)" }, { char: "ン", read: "n (응)" }
-                ],
-                words: [
-                    {
-                        kanji: "発展", hiragana: "はってん", korean: "발전",
-                        examples: [
-                            { main: "経済が大きく発展する。", sub: "けいざいがおおきくはってんする。", kr: "경제가 크게 발전하다." }
-                        ]
-                    }
-                ],
-                sentences: [
-                    {
-                        kanji: "お世話になっております。", hiragana: "おせわになっております。", korean: "신세 지고 있습니다. (비즈니스 인사말)",
-                        examples: [
-                            { main: "いつも大変お世話になっております。", sub: "いつもたいへんおせわになっております。", kr: "항상 대단히 신세 지고 있습니다." }
-                        ]
-                    }
-                ]
-            },
-            english: {
-                alphabet: [
-                    { char: "A a", read: "[eɪ] 에이" }, { char: "B b", read: "[biː] 비" }, { char: "C c", read: "[siː] 씨" }, { char: "D d", read: "[diː] 디" },
-                    { char: "E e", read: "[iː] 이" }, { char: "F f", read: "[ef] 에프" }, { char: "G g", read: "[dʒiː] 지" }, { char: "H h", read: "[eɪtʃ] 에이치" },
-                    { char: "I i", read: "[aɪ] 아이" }, { char: "J j", read: "[dʒeɪ] 제이" }, { char: "K k", read: "[keɪ] 케이" }, { char: "L l", read: "[el] 엘" },
-                    { char: "M m", read: "[em] 엠" }, { char: "N n", read: "[en] 엔" }, { char: "O o", read: "[oʊ] 오우" }, { char: "P p", read: "[piː] 피" },
-                    { char: "Q q", read: "[kjuː] 큐" }, { char: "R r", read: "[ɑːr] 아르" }, { char: "S s", read: "[es] 에스" }, { char: "T t", read: "[tiː] 티" },
-                    { char: "U u", read: "[juː] 유" }, { char: "V v", read: "[viː] 브이" }, { char: "W w", read: "[ˈdʌbljuː] 더블유" }, { char: "X x", read: "[eks] 엑스" },
-                    { char: "Y y", read: "[waɪ] 와이" }, { char: "Z z", read: "[ziː/zed] 지/제트" }
-                ],
-                words: [
-                    {
-                        word: "Implement", korean: "실행하다, 도입하다",
-                        examples: [
-                            { main: "The government implemented a new policy.", kr: "정부는 새로운 정책을 실행했다." }
-                        ]
-                    }
-                ],
-                sentences: [
-                    {
-                        word: "I look forward to hearing from you.", korean: "당신의 답장을 고대하고 있겠습니다.",
-                        examples: [
-                            { main: "We look forward to working with you.", kr: "당신과 함께 일하기를 고대합니다." }
-                        ]
-                    }
-                ]
-            }
-        };
-
-        // ================= 카테고리 메뉴 생성 =================
         function renderCategoryNav() {
             const catNav = document.getElementById('cat-nav');
-            catNav.innerHTML = ''; // 기존 버튼 지우기
-            
+            catNav.innerHTML = ''; 
             categories[currentLang].forEach(cat => {
                 const btn = document.createElement('button');
                 btn.id = `btn-${cat.id}`;
@@ -153,10 +66,8 @@
             });
         }
 
-        // ================= 버튼 클릭 로직 =================
         function setLang(lang) {
             currentLang = lang;
-            // 언어를 바꿀 때 기본 카테고리 지정 (일본어면 히라가나, 영어면 알파벳)
             currentCategory = lang === 'japanese' ? 'hiragana' : 'alphabet'; 
             renderCategoryNav();
             renderData();
@@ -168,45 +79,39 @@
         }
 
         function updateButtonStyles() {
-            // 언어 버튼 색상 업데이트
             document.querySelectorAll('#lang-nav button').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`btn-${currentLang}`).classList.add('active');
-            
-            // 카테고리 버튼 색상 업데이트
             document.querySelectorAll('#cat-nav button').forEach(btn => btn.classList.remove('active'));
             const activeCatBtn = document.getElementById(`btn-${currentCategory}`);
             if(activeCatBtn) activeCatBtn.classList.add('active');
         }
 
-        // ================= 화면 렌더링 =================
         function renderData() {
             updateButtonStyles();
             const contentArea = document.getElementById('content-area');
             contentArea.innerHTML = ''; 
 
-            // 문자(알파벳/가나) 모드일 때는 한 줄에 여러 개 나오도록 바둑판 배열 클래스 적용
             if (['hiragana', 'katakana', 'alphabet'].includes(currentCategory)) {
                 contentArea.classList.add('grid-mode');
             } else {
                 contentArea.classList.remove('grid-mode');
             }
 
-            const dataList = db[currentLang][currentCategory];
+            // db 객체는 data.js에서 가져옵니다
+            const dataList = db[currentLang][currentCategory] || [];
 
             dataList.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'card';
 
-                // 문자 모드 렌더링
                 if (['hiragana', 'katakana', 'alphabet'].includes(currentCategory)) {
                     card.innerHTML = `
                         <div class="char-title">${item.char}</div>
                         <div class="char-sub"><strong>${item.read}</strong></div>
                     `;
                 } 
-                // 단어/문장 렌더링 (일본어 - 한자/히라가나/한국어 뜻 및 예문 동시 제공)
                 else if (currentLang === 'japanese') {
-                    let examplesHtml = item.examples.map(ex => `
+                    let examplesHtml = (item.examples || []).map(ex => `
                         <div class="example-box">
                             <div class="example-text"><strong>${ex.main}</strong> <br><span style="font-size: 0.9em; color: #7f8c8d;">${ex.sub}</span></div>
                             <div class="example-translation">${ex.kr}</div>
@@ -220,9 +125,8 @@
                         <div>${examplesHtml}</div>
                     `;
                 } 
-                // 단어/문장 렌더링 (영어)
                 else if (currentLang === 'english') {
-                    let examplesHtml = item.examples.map(ex => `
+                    let examplesHtml = (item.examples || []).map(ex => `
                         <div class="example-box">
                             <div class="example-text"><strong>${ex.main}</strong></div>
                             <div class="example-translation">${ex.kr}</div>
@@ -239,7 +143,6 @@
             });
         }
 
-        // 초기 실행: 메뉴를 그리고 데이터를 화면에 표시
         renderCategoryNav();
         renderData();
     </script>
